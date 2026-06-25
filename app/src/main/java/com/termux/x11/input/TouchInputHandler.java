@@ -91,6 +91,9 @@ public class TouchInputHandler {
     private InputStrategyInterface mInputStrategy;
     private final InputEventSender mInjector;
     private final MainActivity mActivity;
+
+    // DriftTab: состояние кнопок громкости для toggle overlay fullscreen
+    private boolean mDtVolUp, mDtVolDown;
     private final DisplayMetrics mMetrics = new DisplayMetrics();
 
     private final BiConsumer<Integer, Boolean> noAction = (key, down) -> {};
@@ -798,6 +801,17 @@ public class TouchInputHandler {
 
             mediaKeysAction.accept(k, e.getAction() == KeyEvent.ACTION_DOWN);
             return true;
+        }
+
+        // DriftTab: Vol Up + Vol Down вместе -> toggle полный экран overlay-окна
+        if (k == KEYCODE_VOLUME_UP || k == KEYCODE_VOLUME_DOWN) {
+            boolean down = e.getAction() == KeyEvent.ACTION_DOWN;
+            if (k == KEYCODE_VOLUME_UP) mDtVolUp = down; else mDtVolDown = down;
+            if (mDtVolUp && mDtVolDown && mActivity.mOverlayHelper.isEnabled()) {
+                mDtVolUp = false; mDtVolDown = false;
+                mActivity.mOverlayHelper.toggleFullscreen();
+                return true;
+            }
         }
 
         if (k == KEYCODE_VOLUME_DOWN) {
