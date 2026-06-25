@@ -78,7 +78,10 @@ public class KeyInterceptor extends AccessibilityService {
 
     public static void recheck() {
         MainActivity a = MainActivity.getInstance();
-        boolean shouldBeEnabled = (a != null && self != null) && (a.hasWindowFocus() || !self.pressedKeys.isEmpty());
+        // DriftTab: в overlay-режиме activity не имеет window-focus, но перехват Super/Meta нужен —
+        // держим фильтр клавиш включённым пока overlay активен (иначе через 120с он гаснет).
+        boolean overlayActive = (a != null) && a.mOverlayHelper != null && a.mOverlayHelper.isEnabled();
+        boolean shouldBeEnabled = (a != null && self != null) && (a.hasWindowFocus() || overlayActive || !self.pressedKeys.isEmpty());
         if (self != null && shouldBeEnabled != self.enabled) {
             if (shouldBeEnabled) {
                 handler.removeCallbacks(disableImmediatelyCallback);

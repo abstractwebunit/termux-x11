@@ -945,7 +945,10 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean shouldInterceptKeys() {
         View textInput = findViewById(R.id.terminal_toolbar_text_input);
-        if (mInputHandler == null || !hasWindowFocus() || (textInput != null && textInput.isFocused()))
+        // DriftTab: в overlay-режиме activity-окно не держит window-focus (фокус у overlay-подокна),
+        // поэтому hasWindowFocus()==false. Без этого Super/Meta-комбо не форвардятся в X11.
+        boolean overlayActive = mOverlayHelper != null && mOverlayHelper.isEnabled();
+        if (mInputHandler == null || (!hasWindowFocus() && !overlayActive) || (textInput != null && textInput.isFocused()))
             return false;
 
         return mInputHandler.shouldInterceptKeys();
