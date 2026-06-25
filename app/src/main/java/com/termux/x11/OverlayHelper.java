@@ -142,6 +142,7 @@ public final class OverlayHelper {
             mLp.x = mSavedX; mLp.y = mSavedY; mLp.width = mSavedW; mLp.height = mSavedH;
         }
         updateLayout();
+        kickSurfaceLayout();
     }
 
     private void setupWindowViews() {

@@ -24,6 +24,9 @@ public class KeyInterceptor extends AccessibilityService {
     private static boolean launchedAutomatically = false;
     private boolean enabled = false;
 
+    // DriftTab: состояние кнопок громкости для toggle overlay fullscreen
+    private boolean mDtVolUp, mDtVolDown;
+
     public KeyInterceptor() {
         self = this;
     }
@@ -96,6 +99,18 @@ public class KeyInterceptor extends AccessibilityService {
 
         if (instance == null)
             return false;
+
+        // DriftTab: Vol Up + Vol Down вместе -> toggle overlay fullscreen
+        int dtKc = event.getKeyCode();
+        if (dtKc == KeyEvent.KEYCODE_VOLUME_UP || dtKc == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            boolean dtDown = event.getAction() == KeyEvent.ACTION_DOWN;
+            if (dtKc == KeyEvent.KEYCODE_VOLUME_UP) mDtVolUp = dtDown; else mDtVolDown = dtDown;
+            if (mDtVolUp && mDtVolDown && instance.mOverlayHelper.isEnabled()) {
+                mDtVolUp = false; mDtVolDown = false;
+                instance.runOnUiThread(() -> instance.mOverlayHelper.toggleFullscreen());
+                return true;
+            }
+        }
 
         boolean intercept = instance.shouldInterceptKeys();
 
