@@ -30,6 +30,11 @@ public final class OverlayHelper {
     private boolean mMinimized;
     private boolean mDragged;
 
+    // DriftTab: состояние кнопок громкости + сохранённая геометрия окна для toggle fullscreen
+    private boolean mVolUp, mVolDown;
+    private boolean mFsMode;
+    private int mSavedX, mSavedY, mSavedW, mSavedH;
+
     private float mDownX;
     private float mDownY;
 
@@ -132,6 +137,26 @@ public final class OverlayHelper {
         mRoot.setFocusableInTouchMode(true);
 
         mRoot.setOnKeyListener((v, keyCode, event) -> {
+            // DriftTab: Vol Up + Vol Down вместе -> скрыть/показать title-bar
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
+                if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) mVolUp = down; else mVolDown = down;
+                if (mVolUp && mVolDown) {
+                    mVolUp = false; mVolDown = false;
+                    mFsMode = !mFsMode;
+                    if (mFsMode) {
+                        mSavedX = mLp.x; mSavedY = mLp.y; mSavedW = mLp.width; mSavedH = mLp.height;
+                        title.setVisibility(View.GONE);
+                        android.util.DisplayMetrics dm = mActivity.getResources().getDisplayMetrics();
+                        mLp.x = 0; mLp.y = 0; mLp.width = dm.widthPixels; mLp.height = dm.heightPixels;
+                    } else {
+                        title.setVisibility(View.VISIBLE);
+                        mLp.x = mSavedX; mLp.y = mSavedY; mLp.width = mSavedW; mLp.height = mSavedH;
+                    }
+                    updateLayout();
+                }
+                return true;
+            }
             if (keyCode == KeyEvent.KEYCODE_BACK) {
                 if ((mLp.flags & WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) == 0) {
                     return mActivity.mLorieKeyListener.onKey(
