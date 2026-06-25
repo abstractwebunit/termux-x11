@@ -135,14 +135,22 @@ public final class OverlayHelper {
         if (mFsMode) {
             mSavedX = mLp.x; mSavedY = mLp.y; mSavedW = mLp.width; mSavedH = mLp.height;
             mTitle.setVisibility(View.GONE);
-            android.util.DisplayMetrics dm = mActivity.getResources().getDisplayMetrics();
-            mLp.x = 0; mLp.y = 0; mLp.width = dm.widthPixels; mLp.height = dm.heightPixels;
+            android.graphics.Point sz = new android.graphics.Point();
+            mActivity.getWindowManager().getDefaultDisplay().getRealSize(sz);
+            mLp.x = 0; mLp.y = 0; mLp.width = sz.x; mLp.height = sz.y;
+            mLp.flags |= WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                       | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
         } else {
             mTitle.setVisibility(View.VISIBLE);
             mLp.x = mSavedX; mLp.y = mSavedY; mLp.width = mSavedW; mLp.height = mSavedH;
         }
         updateLayout();
         kickSurfaceLayout();
+        // DriftTab: захват мыши в полноэкранном режиме (чтобы курсор не убегал за края)
+        if (mActivity.getLorieView() != null) {
+            if (mFsMode) mActivity.getLorieView().requestPointerCapture();
+            else mActivity.getLorieView().releasePointerCapture();
+        }
     }
 
     private void setupWindowViews() {
