@@ -100,13 +100,12 @@ public class KeyInterceptor extends AccessibilityService {
         if (instance == null)
             return false;
 
-        // DriftTab: Vol Up + Vol Down вместе -> toggle overlay fullscreen
-        int dtKc = event.getKeyCode();
-        if (dtKc == KeyEvent.KEYCODE_VOLUME_UP || dtKc == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            boolean dtDown = event.getAction() == KeyEvent.ACTION_DOWN;
-            if (dtKc == KeyEvent.KEYCODE_VOLUME_UP) mDtVolUp = dtDown; else mDtVolDown = dtDown;
-            if (mDtVolUp && mDtVolDown && instance.mOverlayHelper.isEnabled()) {
-                mDtVolUp = false; mDtVolDown = false;
+        // DriftTab: toggle overlay fullscreen по клавиатурным комбинациям
+        // (accessibility ловит клавиатуру; volume до accessibility не доходит)
+        if (event.getAction() == KeyEvent.ACTION_DOWN && instance.mOverlayHelper.isEnabled()) {
+            int c = event.getKeyCode();
+            if (event.isMetaPressed() && (c == KeyEvent.KEYCODE_F12 || c == KeyEvent.KEYCODE_F11
+                    || c == KeyEvent.KEYCODE_MOVE_END || c == KeyEvent.KEYCODE_BACKSLASH)) {
                 instance.runOnUiThread(() -> instance.mOverlayHelper.toggleFullscreen());
                 return true;
             }
